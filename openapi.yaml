@@ -1,0 +1,388 @@
+openapi: 3.0.3
+
+info:
+  title: SUGDiO API 
+  description: API Specification for SUGDiO API
+  version: 0.0.1
+
+tags:
+  - name: employee
+    description: Manage employees
+  - name: vacation
+    description: Manage vacations
+
+paths:
+  /employee/{employeeID}:
+    get:
+      tags:
+        - employee
+      summary: Get employee
+      operationId: getEmployee
+
+      parameters:
+        - name: employeeID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+      
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Employee'
+
+        "404":
+          $ref: '#/components/responses/NotFound'
+        
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+        "403":
+          $ref: '#/components/responses/Forbidden'
+    
+    patch:
+      tags:
+        - employee
+      summary: Patch employee
+      operationId: patchEmployee
+
+      parameters:
+        - name: employeeID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1      
+      
+      requestBody:
+        description: Employee field to patch
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeePatch'
+      
+      responses:
+        "200":
+          description: Employee updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - employee
+      summary: Delete employee
+      operationId: deleteEmployee
+
+      parameters:
+        - name: employeeID
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1 
+      
+      responses:
+        "204":
+          description: Employee deleted
+
+        "404":
+          $ref: '#/components/responses/NotFound'
+        
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        
+        "403":
+          $ref: '#/components/responses/Forbidden'   
+
+
+
+  /employee:
+    get:
+      tags:
+        - employee
+      summary: Get all employees
+      operationId: getEmployees
+      
+      parameters:
+        - name: filter
+          description: Employees filter
+          in: query
+          required: false
+          explode: true 
+          schema:
+            $ref: '#/components/schemas/EmployeeFilter'
+
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/EmployeeList'
+
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+        "404":
+          $ref: '#/components/responses/NotFound'
+    
+    post:
+      tags:
+        - employee
+      summary: Create employee 
+      operationId: createEmployee
+
+      requestBody:
+        description: New employee data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeCreate'
+
+      responses:
+        "201":
+          description: Employee created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+
+
+components:
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+            
+    Forbidden:
+      description: Insufficient privileges
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Object not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    Conflict:
+      description: Conflict":" Object has related data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    BadRequest:
+      description: Error in request params/body
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      required:
+        - message
+        - code
+      properties:
+        message:
+          type: string
+          example: "Employee not found"
+        code:
+          type: string
+          example: "EMPLOYEE_NOT_FOUND"
+    
+    EmployeeBase:
+      type: object
+      required:
+        - first_name
+        - second_name
+      properties:
+        first_name:
+          type: string
+        middle_name:
+          type: string
+          nullable: true
+        second_name:
+          type: string
+        active:
+          type: boolean
+
+    EmployeeCreate:
+      allOf:
+        - $ref: '#/components/schemas/EmployeeBase'
+        - type: object
+          properties:
+            position_id:
+              type: integer
+              nullable: true
+            department_id:
+              type: integer
+              nullable: true
+            user_id:
+              type: integer
+              format: int64
+              nullable: true
+    
+    EmployeePatch:
+      type: object
+      properties:
+        first_name:
+          type: string
+        middle_name:
+          type: string
+        second_name:
+          type: string
+        position_id:
+          type: integer
+          nullable: true
+        department_id:
+          type: integer
+          nullable: true
+        active:
+          type: boolean
+        user_id:
+          type: integer
+          nullable: true
+          format: int64
+    
+    Employee:
+      allOf:
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              type: integer
+              format: int64
+            created_at:
+                type: string
+                format: date-time
+                example: '2024-03-20T09:12:28Z'
+            
+            department: 
+              $ref: '#/components/schemas/DepartmentShort'
+            position: 
+              $ref: '#/components/schemas/PositionShort'
+            user: 
+              $ref: '#/components/schemas/UserShort'
+
+        - $ref: '#/components/schemas/EmployeeBase'
+
+    EmployeeFilter:
+      type: object
+      properties:
+        first_name:
+          type: string
+          nullable: true
+        second_name:
+          type: string
+          nullable: true
+        active:
+          type: boolean
+          nullable: true
+        department_id:
+          type: integer
+          nullable: true
+        limit:
+          type: integer
+          nullable: true
+        offset:
+          type: integer
+          nullable: true
+
+    EmployeeList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Employee'
+        total:
+          type: integer
+          example: 100
+    
+    UserShort:
+      type: object
+      nullable: true
+      required:
+        - id
+        - email
+        - role 
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        role:
+          type: string
+    
+    DepartmentShort:
+      type: object
+      nullable: true
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+        name: 
+          type: string
+    
+    PositionShort:
+      type: object
+      nullable: true
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
