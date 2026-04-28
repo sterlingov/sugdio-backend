@@ -13,6 +13,31 @@ type Handler struct {
 	shiftService *service.ShiftService
 }
 
+// CreateShift implements [api.StrictServerInterface].
+func (h *Handler) CreateShift(ctx context.Context, request api.CreateShiftRequestObject) (api.CreateShiftResponseObject, error) {
+	panic("unimplemented")
+}
+
+// DeleteShift implements [api.StrictServerInterface].
+func (h *Handler) DeleteShift(ctx context.Context, request api.DeleteShiftRequestObject) (api.DeleteShiftResponseObject, error) {
+	panic("unimplemented")
+}
+
+// GetShift implements [api.StrictServerInterface].
+func (h *Handler) GetShift(ctx context.Context, request api.GetShiftRequestObject) (api.GetShiftResponseObject, error) {
+	panic("unimplemented")
+}
+
+// GetShifts implements [api.StrictServerInterface].
+func (h *Handler) GetShifts(ctx context.Context, request api.GetShiftsRequestObject) (api.GetShiftsResponseObject, error) {
+	panic("unimplemented")
+}
+
+// PatchShift implements [api.StrictServerInterface].
+func (h *Handler) PatchShift(ctx context.Context, request api.PatchShiftRequestObject) (api.PatchShiftResponseObject, error) {
+	panic("unimplemented")
+}
+
 func NewHandler(es *service.EmployeeService, ss *service.ShiftService) *Handler {
 	return &Handler{empService: es, shiftService: ss}
 }
@@ -85,9 +110,6 @@ func (h *Handler) GetEmployees(ctx context.Context, request api.GetEmployeesRequ
 
 	empList, err := h.empService.List(ctx, filter)
 	if err != nil {
-		if errors.Is(err, domain.ErrNotFound) {
-			return api.GetEmployees404JSONResponse{NotFoundJSONResponse: api.NotFoundJSONResponse{Code: "NOT_FOUND", Message: "No employees found with provided filter"}}, nil
-		}
 		return nil, err
 	}
 

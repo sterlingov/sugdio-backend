@@ -10,6 +10,8 @@ tags:
     description: Manage employees
   - name: vacation
     description: Manage vacations
+  - name: shift
+    description: Manage shifts
 
 paths:
   /employee/{employeeID}:
@@ -151,8 +153,6 @@ paths:
         "403":
           $ref: '#/components/responses/Forbidden'
 
-        "404":
-          $ref: '#/components/responses/NotFound'
     
     post:
       tags:
@@ -184,6 +184,178 @@ paths:
         
         "403":
           $ref: '#/components/responses/Forbidden'
+  
+
+
+
+
+  /shift:
+    post:
+      tags:
+        - shift
+      summary: Create shift 
+      operationId: createShift
+
+      requestBody:
+        description: New shift data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShiftCreate'
+
+      responses:
+        "201":
+          description: Shift created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shift'
+
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        
+        "403":
+          $ref: '#/components/responses/Forbidden'
+    
+    get:
+      tags:
+        - shift
+      summary: Get all shifts
+      operationId: getShifts
+      
+      parameters:
+        - name: filter
+          description: Shifts filter
+          in: query
+          required: false
+          explode: true 
+          schema:
+            $ref: '#/components/schemas/ShiftFilter'
+
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/ShiftList'
+
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+
+  /shift/{shiftID}:
+    get:
+      tags:
+        - shift
+      summary: Get shift
+      operationId: getShift
+
+      parameters:
+        - name: shiftID
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Shift'
+
+        "404":
+          $ref: '#/components/responses/NotFound'
+        
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+
+    patch:
+      tags:
+        - shift
+      summary: Patch shift
+      operationId: patchShift
+
+      parameters:
+        - name: shiftID
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1      
+      
+      requestBody:
+        description: Shift fields to patch
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShiftPatch'
+      
+      responses:
+        "200":
+          description: Shift updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shift'
+
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - shift
+      summary: Delete shift
+      operationId: deleteShift
+
+      parameters:
+        - name: shiftID
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1 
+      
+      responses:
+        "204":
+          description: Shift deleted
+
+        "404":
+          $ref: '#/components/responses/NotFound'
+        
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        
+        "403":
+          $ref: '#/components/responses/Forbidden'  
+
 
 
 
@@ -348,6 +520,18 @@ components:
           type: integer
           example: 100
     
+    EmployeeShort:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/EmployeeBase'
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              type: integer
+              format: int64
+    
     UserShort:
       type: object
       nullable: true
@@ -361,6 +545,7 @@ components:
         email:
           type: string
         role:
+          example: "admin/manager/employee"
           type: string
     
     DepartmentShort:
@@ -386,3 +571,117 @@ components:
           type: integer
         name:
           type: string
+    
+    ShiftBase:
+      type: object
+      required:
+        - date
+      properties:
+        date:
+          type: string
+          format: date
+        status:
+          type: string
+          example: "planned/completed/cancelled"
+    
+    ShiftCreate:
+      type: object
+      required:
+        - employee_id
+        - date
+        - shift_type_id
+      allOf:
+        - $ref: '#/components/schemas/ShiftBase'
+        - type: object
+          properties:
+            shift_type_id:
+              type: integer
+            employee_id:
+              type: integer
+              format: int64
+    
+    ShiftType:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+
+    Shift:
+      allOf:
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              type: integer
+            created_at:
+                type: string
+                format: date-time
+                example: '2024-03-20T09:12:28Z'
+            updated_at:
+                type: string
+                format: date-time
+                example: '2024-03-20T09:12:28Z'
+            shift_type:
+              $ref: '#/components/schemas/ShiftType'
+            employee:
+              $ref: '#/components/schemas/EmployeeShort'
+
+        - $ref: '#/components/schemas/ShiftBase'
+
+    ShiftList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Shift'
+        total:
+          type: integer
+          example: 100
+    
+    ShiftFilter:
+      type: object
+      properties:
+        shift_type_id:
+          type: integer
+          nullable: true
+        date_from:
+          type: string
+          format: date
+          nullable: true
+        date_to:
+          type: string
+          format: date
+          nullable: true
+        status:
+          type: string
+          nullable: true
+        employee_id:
+          type: integer
+          nullable: true
+        limit:
+          type: integer
+          nullable: true
+        offset:
+          type: integer
+          nullable: true
+    
+    ShiftPatch:
+      type: object
+      properties:
+        shift_type_id:
+          type: integer
+          nullable: true
+        date:
+          type: string
+          nullable: true
+          format: date
+        status: 
+          type: string
+          nullable: true
+        employee_id:
+          type: integer
+          nullable: true

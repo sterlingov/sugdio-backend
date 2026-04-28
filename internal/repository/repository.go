@@ -37,6 +37,12 @@ type UserRepository interface {
 
 type ShiftRepository interface {
 	HasShifts(ctx context.Context, EmployeeID int64) (bool, error)
+
+	CreateShift(ctx context.Context, shift *domain.ShiftCreate) (int, error)
+	GetByIDShift(ctx context.Context, shiftID int) (*domain.Shift, error)
+	ListShift(ctx context.Context, filter domain.ShiftFilter) ([]domain.Shift, error)
+	UpdateShift(ctx context.Context, patch domain.ShiftPatch) error
+	DeleteShift(ctx context.Context, shiftID int) error
 }
 
 type VacationRepository interface {
