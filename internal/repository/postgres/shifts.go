@@ -29,7 +29,7 @@ func ScanShift(r Scanner) (*domain.Shift, error) {
 
 	var eMiddleName sql.NullString
 
-	err := r.Scan(&s.ID, &s.Date, &s.Status, &s.CreatedAt, &s.UpdatedAt, &st.ID, &st.Name, &e.ID, &e.FirstName, &eMiddleName, &e.SecondName)
+	err := r.Scan(&s.ID, &s.Date, &s.Status, &s.CreatedAt, &s.UpdatedAt, &st.ID, &st.Name, &e.ID, &e.FirstName, &eMiddleName, &e.SecondName, &e.Active)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -69,7 +69,7 @@ func (r *PostgresRepository) CreateShift(ctx context.Context, shift *domain.Shif
 }
 func (r *PostgresRepository) GetByIDShift(ctx context.Context, shiftID int) (*domain.Shift, error) {
 	query := `
-	SELECT s.id, s.date, s.status, s.created_at, s.updated_at, st.id, st.name, e.id, e.first_name, e.middle_name, e.second_name
+	SELECT s.id, s.date, s.status, s.created_at, s.updated_at, st.id, st.name, e.id, e.first_name, e.middle_name, e.second_name, e.active
 	FROM shifts s
 	LEFT JOIN shift_types st ON s.shift_type_id = st.id
 	LEFT JOIN employees e ON s.employee_id = e.id
@@ -86,7 +86,7 @@ func (r *PostgresRepository) GetByIDShift(ctx context.Context, shiftID int) (*do
 }
 func (r *PostgresRepository) ListShift(ctx context.Context, filter domain.ShiftFilter) ([]domain.Shift, error) {
 	query := `
-	SELECT s.id, s.date, s.status, s.created_at, s.updated_at, st.id, st.name, e.id, e.first_name, e.middle_name, e.second_name
+	SELECT s.id, s.date, s.status, s.created_at, s.updated_at, st.id, st.name, e.id, e.first_name, e.middle_name, e.second_name, e.active
 	FROM shifts s
 	LEFT JOIN shift_types st ON s.shift_type_id = st.id
 	LEFT JOIN employees e ON s.employee_id = e.id

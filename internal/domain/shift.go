@@ -1,5 +1,7 @@
 package domain
 
+import "time"
+
 type ShiftStatus string
 
 const (
@@ -9,7 +11,7 @@ const (
 )
 
 type ShiftCreate struct {
-	Date        string
+	Date        time.Time
 	EmployeeID  int
 	ShiftTypeID int
 	Status      *ShiftStatus
@@ -20,27 +22,35 @@ type ShiftType struct {
 	Name string
 }
 
+type ShiftTypePatch struct {
+	Name *string
+}
+
+type ShiftTypeCreate struct {
+	Name string
+}
+
 type Shift struct {
 	ID        int
-	CreatedAt string
-	UpdatedAt string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 	ShiftType ShiftType
 	Employee  EmployeeShort
-	Date      string
+	Date      time.Time
 	Status    string
 }
 
 type ShiftPatch struct {
 	ShiftTypeID *int
-	Date        *string
+	Date        *time.Time
 	Status      *ShiftStatus
 	EmployeeID  *int
 }
 
 type ShiftFilter struct {
 	ShiftTypeID *int
-	DateFrom    *string
-	DateTo      *string
+	DateFrom    *time.Time
+	DateTo      *time.Time
 	Status      *ShiftStatus
 	EmployeeID  *int
 	Limit       int

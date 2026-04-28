@@ -19,6 +19,7 @@ type EmployeeShort struct {
 	FirstName  string
 	MiddleName *string
 	SecondName string
+	Active     bool
 }
 
 type EmployeeCreate struct {

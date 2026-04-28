@@ -3,6 +3,8 @@ package handlers
 import (
 	"sugdio/api"
 	"sugdio/internal/domain"
+
+	"github.com/oapi-codegen/runtime/types"
 )
 
 func toAPIEmployee(employee *domain.Employee) api.Employee {
@@ -33,6 +35,20 @@ func toAPIEmployee(employee *domain.Employee) api.Employee {
 			Id:   int(employee.Position.ID),
 			Name: employee.Position.Name,
 		}
+	}
+
+	return res
+}
+
+func toAPIShift(s *domain.Shift) api.Shift {
+	res := api.Shift{
+		Id:        s.ID,
+		CreatedAt: &s.CreatedAt,
+		UpdatedAt: &s.UpdatedAt,
+		Date:      types.Date{Time: s.Date},
+		ShiftType: &api.ShiftType{Id: &s.ShiftType.ID, Name: &s.ShiftType.Name},
+		Status:    &s.Status,
+		Employee:  &api.EmployeeShort{Active: &s.Employee.Active, FirstName: s.Employee.FirstName, SecondName: s.Employee.SecondName, Id: s.Employee.ID, MiddleName: s.Employee.MiddleName},
 	}
 
 	return res

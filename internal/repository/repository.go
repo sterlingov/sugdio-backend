@@ -43,6 +43,12 @@ type ShiftRepository interface {
 	ListShift(ctx context.Context, filter domain.ShiftFilter) ([]domain.Shift, error)
 	UpdateShift(ctx context.Context, id int, patch domain.ShiftPatch) error
 	DeleteShift(ctx context.Context, shiftID int) error
+
+	CreateShiftType(ctx context.Context, shiftType *domain.ShiftTypeCreate) (int, error)
+	GetByIDShiftType(ctx context.Context, id int) (*domain.ShiftType, error)
+	ListShiftType(ctx context.Context) ([]domain.ShiftType, error)
+	UpdateShiftType(ctx context.Context, id int, shift domain.ShiftTypePatch) error
+	DeleteShiftType(ctx context.Context, id int) error
 }
 
 type VacationRepository interface {
