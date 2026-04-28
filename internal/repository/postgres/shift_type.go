@@ -23,7 +23,7 @@ func ScanShiftType(s Scanner) (*domain.ShiftType, error) {
 
 func (r *PostgresRepository) CreateShiftType(ctx context.Context, shiftType *domain.ShiftTypeCreate) (int, error) {
 	var insertedID int
-	query := `INSERT INTO shift_types (name) VALUES ($1)`
+	query := `INSERT INTO shift_types (name) VALUES ($1) RETURNING id`
 	err := r.db.QueryRowContext(ctx, query, shiftType.Name).Scan(&insertedID)
 	return insertedID, err
 }

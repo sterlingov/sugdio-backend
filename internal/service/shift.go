@@ -18,10 +18,8 @@ func NewShiftService(repo repository.ShiftRepository, er repository.EmployeeRepo
 func (s *ShiftService) CreateShift(ctx context.Context, sc *domain.ShiftCreate) (*domain.Shift, error) {
 	var shift *domain.Shift
 
-	if sc.Status != nil {
-		if *sc.Status != domain.ShiftStatusCancelled && *sc.Status != domain.ShiftStatusCompleted && *sc.Status != domain.ShiftStatusPlanned {
-			return nil, domain.ErrWrongShiftStatus
-		}
+	if sc.Status != domain.ShiftStatusCancelled && sc.Status != domain.ShiftStatusCompleted && sc.Status != domain.ShiftStatusPlanned {
+		return nil, domain.ErrWrongShiftStatus
 	}
 
 	if _, err := s.repository.GetByIDShiftType(ctx, sc.ShiftTypeID); err != nil {
@@ -79,15 +77,22 @@ func (s *ShiftService) UpdateShift(ctx context.Context, id int, patch domain.Shi
 }
 
 func (s *ShiftService) CreateShiftType(ctx context.Context, st *domain.ShiftTypeCreate) (*domain.ShiftType, error) {
-	return s.CreateShiftType(ctx, st)
+	id, err := s.repository.CreateShiftType(ctx, st)
+	if err != nil {
+		return nil, err
+	}
+	return s.repository.GetByIDShiftType(ctx, id)
 }
 func (s *ShiftService) DeleteShiftType(ctx context.Context, id int) error {
 	filter := domain.ShiftFilter{ShiftTypeID: &id, Limit: 1, Offset: 0}
 	shifts, err := s.repository.ListShift(ctx, filter)
-	if len(shifts) == 0 {
+	if err != nil {
+		return err
+	}
+	if len(shifts) != 0 {
 		return domain.ErrShiftTypeInUse
 	}
-	return err
+	return s.repository.DeleteShiftType(ctx, id)
 }
 func (s *ShiftService) UpdateShiftType(ctx context.Context, id int, patch domain.ShiftTypePatch) (*domain.ShiftType, error) {
 	err := s.repository.UpdateShiftType(ctx, id, patch)

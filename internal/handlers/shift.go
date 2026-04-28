@@ -10,7 +10,10 @@ import (
 func (h *Handler) CreateShift(ctx context.Context, request api.CreateShiftRequestObject) (api.CreateShiftResponseObject, error) {
 	shift := domain.ShiftCreate{
 		Date:   request.Body.Date.Time,
-		Status: (*domain.ShiftStatus)(request.Body.Status),
+		Status: domain.ShiftStatusPlanned,
+	}
+	if request.Body.Status != nil {
+		shift.Status = domain.ShiftStatus(*request.Body.Status)
 	}
 	if request.Body.EmployeeId == nil {
 		shift.EmployeeID = 0
@@ -60,11 +63,20 @@ func (h *Handler) GetShifts(ctx context.Context, request api.GetShiftsRequestObj
 	filter.Offset = 0
 
 	if params.Filter != nil {
-		filter.DateFrom = &params.Filter.DateFrom.Time
-		filter.DateTo = &params.Filter.DateTo.Time
 		filter.EmployeeID = params.Filter.EmployeeId
 		filter.ShiftTypeID = params.Filter.ShiftTypeId
-		filter.Status = (*domain.ShiftStatus)(params.Filter.Status)
+
+		if params.Filter.DateFrom != nil {
+			filter.DateFrom = &params.Filter.DateFrom.Time
+		}
+		if params.Filter.DateTo != nil {
+			filter.DateTo = &params.Filter.DateTo.Time
+		}
+
+		if params.Filter.Status != nil {
+			status := domain.ShiftStatus(*params.Filter.Status)
+			filter.Status = &status
+		}
 
 		if params.Filter.Offset != nil {
 			filter.Offset = *params.Filter.Offset
@@ -92,9 +104,12 @@ func (h *Handler) GetShifts(ctx context.Context, request api.GetShiftsRequestObj
 func (h *Handler) PatchShift(ctx context.Context, request api.PatchShiftRequestObject) (api.PatchShiftResponseObject, error) {
 	patch := domain.ShiftPatch{
 		ShiftTypeID: request.Body.ShiftTypeId,
-		Date:        &request.Body.Date.Time,
 		Status:      (*domain.ShiftStatus)(request.Body.Status),
 		EmployeeID:  request.Body.EmployeeId,
+	}
+
+	if request.Body.Date != nil {
+		patch.Date = &request.Body.Date.Time
 	}
 
 	shift, err := h.shiftService.UpdateShift(ctx, request.ShiftID, patch)

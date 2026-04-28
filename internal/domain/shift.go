@@ -14,7 +14,7 @@ type ShiftCreate struct {
 	Date        time.Time
 	EmployeeID  int
 	ShiftTypeID int
-	Status      *ShiftStatus
+	Status      ShiftStatus
 }
 
 type ShiftType struct {
