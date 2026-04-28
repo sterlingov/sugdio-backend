@@ -53,3 +53,11 @@ func toAPIShift(s *domain.Shift) api.Shift {
 
 	return res
 }
+
+func toApiShiftType(st *domain.ShiftType) api.ShiftType {
+	res := api.ShiftType{
+		Id:   &st.ID,
+		Name: &st.Name,
+	}
+	return res
+}

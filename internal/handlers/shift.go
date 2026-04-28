@@ -36,6 +36,9 @@ func (h *Handler) CreateShift(ctx context.Context, request api.CreateShiftReques
 
 func (h *Handler) DeleteShift(ctx context.Context, request api.DeleteShiftRequestObject) (api.DeleteShiftResponseObject, error) {
 	err := h.shiftService.DeleteShift(ctx, request.ShiftID)
+	if errors.Is(err, domain.ErrNotFound) {
+		return api.DeleteShift404JSONResponse{NotFoundJSONResponse: api.NotFoundJSONResponse{Code: "NOT_FOUND", Message: "Shift not found"}}, nil
+	}
 	return api.DeleteShift204Response{}, err
 }
 

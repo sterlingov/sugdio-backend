@@ -12,6 +12,8 @@ tags:
     description: Manage vacations
   - name: shift
     description: Manage shifts
+  - name: shift_type
+    description: Manage shift types
 
 paths:
   /employee/{employeeID}:
@@ -356,8 +358,162 @@ paths:
         "403":
           $ref: '#/components/responses/Forbidden'  
 
+  /shift-type:
+    post: 
+      tags:
+        - shift_type
+      summary: Create shift type
+      operationId: createShiftType
+
+      requestBody:
+        description: New shift type data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShiftTypeCreate'
+
+      responses:
+        "201":
+          description: Shift type created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShiftType'
+
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        
+        "403":
+          $ref: '#/components/responses/Forbidden'
+  
+    get:
+      tags:
+        - shift_type
+      summary: Get all shift types
+      operationId: getShiftTypes
+
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/ShiftTypeList'
+
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+        "403":
+          $ref: '#/components/responses/Forbidden'
+
+  /shift-type/{shiftTypeID}:
+    get:
+      tags:
+        - shift_type
+      summary: Get shift type
+      operationId: getShiftType
+
+      parameters:
+        - name: shiftTypeID
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/ShiftType'
+
+        "404":
+          $ref: '#/components/responses/NotFound'
+        
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
+        "403":
+          $ref: '#/components/responses/Forbidden'
 
 
+    patch:
+      tags:
+        - shift_type
+      summary: Patch shift type
+      operationId: patchShiftType
+
+      parameters:
+        - name: shiftTypeID
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1      
+      
+      requestBody:
+        description: Shift type fields to patch
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShiftTypePatch'
+      
+      responses:
+        "200":
+          description: Shift type updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShiftType'
+
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        
+        "404":
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - shift_type
+      summary: Delete shift type
+      operationId: deleteShiftType
+
+      parameters:
+        - name: shiftTypeID
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1 
+      
+      responses:
+        "204":
+          description: Shift type deleted
+
+        "404":
+          $ref: '#/components/responses/NotFound'
+        
+        "409":
+          $ref: "#/components/responses/Conflict"
+
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        
+        "403":
+          $ref: '#/components/responses/Forbidden'  
 
 components:
   responses:
@@ -600,6 +756,20 @@ components:
               type: integer
               format: int64
     
+    ShiftTypeCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name: 
+          type: string
+
+    ShiftTypePatch:
+      type: object
+      properties:
+        name:
+          type: string
+
     ShiftType:
       type: object
       properties:
@@ -607,6 +777,17 @@ components:
           type: integer
         name:
           type: string
+    
+    ShiftTypeList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ShiftType'
+        total:
+          type: integer
+          example: 100
 
     Shift:
       allOf:
