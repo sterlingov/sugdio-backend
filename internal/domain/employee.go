@@ -15,7 +15,7 @@ type Employee struct {
 }
 
 type EmployeeShort struct {
-	Id         int64
+	ID         int64
 	FirstName  string
 	MiddleName *string
 	SecondName string

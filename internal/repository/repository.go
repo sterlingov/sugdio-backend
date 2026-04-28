@@ -41,7 +41,7 @@ type ShiftRepository interface {
 	CreateShift(ctx context.Context, shift *domain.ShiftCreate) (int, error)
 	GetByIDShift(ctx context.Context, shiftID int) (*domain.Shift, error)
 	ListShift(ctx context.Context, filter domain.ShiftFilter) ([]domain.Shift, error)
-	UpdateShift(ctx context.Context, patch domain.ShiftPatch) error
+	UpdateShift(ctx context.Context, id int, patch domain.ShiftPatch) error
 	DeleteShift(ctx context.Context, shiftID int) error
 }
 

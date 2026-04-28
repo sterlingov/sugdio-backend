@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"strings"
 	"sugdio/internal/domain"
 )
 
@@ -63,11 +62,7 @@ func (r *PostgresRepository) GetByIDEmployee(ctx context.Context, id int64) (*do
 	return e, err
 }
 
-type scanner interface {
-	Scan(dest ...any) error
-}
-
-func ScanEmployee(r scanner) (*domain.Employee, error) {
+func ScanEmployee(r Scanner) (*domain.Employee, error) {
 	var e domain.Employee
 
 	var userID sql.NullInt64
@@ -177,51 +172,38 @@ func (r *PostgresRepository) ListEmployee(ctx context.Context, f domain.Employee
 }
 
 func (r *PostgresRepository) UpdateEmployee(ctx context.Context, id int64, p domain.EmployeePatch) error {
-	var sb strings.Builder
-	sb.WriteString("UPDATE employees SET ")
-
-	args := []any{}
-	argID := 1
-
-	addCondition := func(fieldName string, value any) {
-		if argID > 1 {
-			sb.WriteString(", ")
-		}
-		sb.WriteString(fmt.Sprintf("%s = $%d", fieldName, argID))
-		args = append(args, value)
-		argID++
-	}
+	pb := NewPatchBuilder()
+	pb.Head("employees")
 
 	if p.FirstName != nil {
-		addCondition("first_name", *p.FirstName)
+		pb.Add("first_name", *p.FirstName)
 	}
 	if p.MiddleName != nil {
-		addCondition("middle_name", p.MiddleName)
+		pb.Add("middle_name", p.MiddleName)
 	}
 	if p.SecondName != nil {
-		addCondition("second_name", *p.SecondName)
+		pb.Add("second_name", *p.SecondName)
 	}
 	if p.Active != nil {
-		addCondition("active", *p.Active)
+		pb.Add("active", *p.Active)
 	}
 	if p.DepartmentId != nil {
-		addCondition("department_id", *p.DepartmentId)
+		pb.Add("department_id", *p.DepartmentId)
 	}
 	if p.PositionId != nil {
-		addCondition("position_id", *p.PositionId)
+		pb.Add("position_id", *p.PositionId)
 	}
 	if p.UserId != nil {
-		addCondition("user_id", p.UserId)
+		pb.Add("user_id", p.UserId)
 	}
 
-	if len(args) == 0 {
+	if pb.Len() == 0 {
 		return nil
 	}
 
-	sb.WriteString(fmt.Sprintf(" WHERE id = $%d", argID))
-	args = append(args, id)
+	pb.Where("id", id)
 
-	result, err := r.db.ExecContext(ctx, sb.String(), args...)
+	result, err := r.db.ExecContext(ctx, pb.String(), pb.Args()...)
 	if err != nil {
 		return fmt.Errorf("update employee: %w", err)
 	}
