@@ -20,6 +20,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/oapi-codegen/runtime"
 	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // DepartmentShort defines model for DepartmentShort.
@@ -87,6 +88,15 @@ type EmployeePatch struct {
 	UserId       *int64  `json:"user_id,omitempty"`
 }
 
+// EmployeeShort defines model for EmployeeShort.
+type EmployeeShort struct {
+	Active     *bool   `json:"active,omitempty"`
+	FirstName  string  `json:"first_name"`
+	Id         int64   `json:"id"`
+	MiddleName *string `json:"middle_name,omitempty"`
+	SecondName string  `json:"second_name"`
+}
+
 // Error defines model for Error.
 type Error struct {
 	Code    string `json:"code"`
@@ -97,6 +107,78 @@ type Error struct {
 type PositionShort struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
+}
+
+// Shift defines model for Shift.
+type Shift struct {
+	CreatedAt *time.Time         `json:"created_at,omitempty"`
+	Date      openapi_types.Date `json:"date"`
+	Employee  *EmployeeShort     `json:"employee,omitempty"`
+	Id        int                `json:"id"`
+	ShiftType *ShiftType         `json:"shift_type,omitempty"`
+	Status    *string            `json:"status,omitempty"`
+	UpdatedAt *time.Time         `json:"updated_at,omitempty"`
+}
+
+// ShiftBase defines model for ShiftBase.
+type ShiftBase struct {
+	Date   openapi_types.Date `json:"date"`
+	Status *string            `json:"status,omitempty"`
+}
+
+// ShiftCreate defines model for ShiftCreate.
+type ShiftCreate struct {
+	Date        openapi_types.Date `json:"date"`
+	EmployeeId  *int64             `json:"employee_id,omitempty"`
+	ShiftTypeId *int               `json:"shift_type_id,omitempty"`
+	Status      *string            `json:"status,omitempty"`
+}
+
+// ShiftFilter defines model for ShiftFilter.
+type ShiftFilter struct {
+	DateFrom    *openapi_types.Date `json:"date_from,omitempty"`
+	DateTo      *openapi_types.Date `json:"date_to,omitempty"`
+	EmployeeId  *int                `json:"employee_id,omitempty"`
+	Limit       *int                `json:"limit,omitempty"`
+	Offset      *int                `json:"offset,omitempty"`
+	ShiftTypeId *int                `json:"shift_type_id,omitempty"`
+	Status      *string             `json:"status,omitempty"`
+}
+
+// ShiftList defines model for ShiftList.
+type ShiftList struct {
+	Items *[]Shift `json:"items,omitempty"`
+	Total *int     `json:"total,omitempty"`
+}
+
+// ShiftPatch defines model for ShiftPatch.
+type ShiftPatch struct {
+	Date        *openapi_types.Date `json:"date,omitempty"`
+	EmployeeId  *int                `json:"employee_id,omitempty"`
+	ShiftTypeId *int                `json:"shift_type_id,omitempty"`
+	Status      *string             `json:"status,omitempty"`
+}
+
+// ShiftType defines model for ShiftType.
+type ShiftType struct {
+	Id   *int    `json:"id,omitempty"`
+	Name *string `json:"name,omitempty"`
+}
+
+// ShiftTypeCreate defines model for ShiftTypeCreate.
+type ShiftTypeCreate struct {
+	Name string `json:"name"`
+}
+
+// ShiftTypeList defines model for ShiftTypeList.
+type ShiftTypeList struct {
+	Items *[]ShiftType `json:"items,omitempty"`
+	Total *int         `json:"total,omitempty"`
+}
+
+// ShiftTypePatch defines model for ShiftTypePatch.
+type ShiftTypePatch struct {
+	Name *string `json:"name,omitempty"`
 }
 
 // UserShort defines model for UserShort.
@@ -127,11 +209,29 @@ type GetEmployeesParams struct {
 	Filter *EmployeeFilter `form:"filter,omitempty" json:"filter,omitempty"`
 }
 
+// GetShiftsParams defines parameters for GetShifts.
+type GetShiftsParams struct {
+	// Filter Shifts filter
+	Filter *ShiftFilter `form:"filter,omitempty" json:"filter,omitempty"`
+}
+
 // CreateEmployeeJSONRequestBody defines body for CreateEmployee for application/json ContentType.
 type CreateEmployeeJSONRequestBody = EmployeeCreate
 
 // PatchEmployeeJSONRequestBody defines body for PatchEmployee for application/json ContentType.
 type PatchEmployeeJSONRequestBody = EmployeePatch
+
+// CreateShiftJSONRequestBody defines body for CreateShift for application/json ContentType.
+type CreateShiftJSONRequestBody = ShiftCreate
+
+// CreateShiftTypeJSONRequestBody defines body for CreateShiftType for application/json ContentType.
+type CreateShiftTypeJSONRequestBody = ShiftTypeCreate
+
+// PatchShiftTypeJSONRequestBody defines body for PatchShiftType for application/json ContentType.
+type PatchShiftTypeJSONRequestBody = ShiftTypePatch
+
+// PatchShiftJSONRequestBody defines body for PatchShift for application/json ContentType.
+type PatchShiftJSONRequestBody = ShiftPatch
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -150,6 +250,36 @@ type ServerInterface interface {
 	// Patch employee
 	// (PATCH /employee/{employeeID})
 	PatchEmployee(w http.ResponseWriter, r *http.Request, employeeID int64)
+	// Get all shifts
+	// (GET /shift)
+	GetShifts(w http.ResponseWriter, r *http.Request, params GetShiftsParams)
+	// Create shift
+	// (POST /shift)
+	CreateShift(w http.ResponseWriter, r *http.Request)
+	// Get all shift types
+	// (GET /shift-type)
+	GetShiftTypes(w http.ResponseWriter, r *http.Request)
+	// Create shift type
+	// (POST /shift-type)
+	CreateShiftType(w http.ResponseWriter, r *http.Request)
+	// Delete shift type
+	// (DELETE /shift-type/{shiftTypeID})
+	DeleteShiftType(w http.ResponseWriter, r *http.Request, shiftTypeID int)
+	// Get shift type
+	// (GET /shift-type/{shiftTypeID})
+	GetShiftType(w http.ResponseWriter, r *http.Request, shiftTypeID int)
+	// Patch shift type
+	// (PATCH /shift-type/{shiftTypeID})
+	PatchShiftType(w http.ResponseWriter, r *http.Request, shiftTypeID int)
+	// Delete shift
+	// (DELETE /shift/{shiftID})
+	DeleteShift(w http.ResponseWriter, r *http.Request, shiftID int)
+	// Get shift
+	// (GET /shift/{shiftID})
+	GetShift(w http.ResponseWriter, r *http.Request, shiftID int)
+	// Patch shift
+	// (PATCH /shift/{shiftID})
+	PatchShift(w http.ResponseWriter, r *http.Request, shiftID int)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -183,6 +313,66 @@ func (_ Unimplemented) GetEmployee(w http.ResponseWriter, r *http.Request, emplo
 // Patch employee
 // (PATCH /employee/{employeeID})
 func (_ Unimplemented) PatchEmployee(w http.ResponseWriter, r *http.Request, employeeID int64) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get all shifts
+// (GET /shift)
+func (_ Unimplemented) GetShifts(w http.ResponseWriter, r *http.Request, params GetShiftsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Create shift
+// (POST /shift)
+func (_ Unimplemented) CreateShift(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get all shift types
+// (GET /shift-type)
+func (_ Unimplemented) GetShiftTypes(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Create shift type
+// (POST /shift-type)
+func (_ Unimplemented) CreateShiftType(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Delete shift type
+// (DELETE /shift-type/{shiftTypeID})
+func (_ Unimplemented) DeleteShiftType(w http.ResponseWriter, r *http.Request, shiftTypeID int) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get shift type
+// (GET /shift-type/{shiftTypeID})
+func (_ Unimplemented) GetShiftType(w http.ResponseWriter, r *http.Request, shiftTypeID int) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Patch shift type
+// (PATCH /shift-type/{shiftTypeID})
+func (_ Unimplemented) PatchShiftType(w http.ResponseWriter, r *http.Request, shiftTypeID int) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Delete shift
+// (DELETE /shift/{shiftID})
+func (_ Unimplemented) DeleteShift(w http.ResponseWriter, r *http.Request, shiftID int) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get shift
+// (GET /shift/{shiftID})
+func (_ Unimplemented) GetShift(w http.ResponseWriter, r *http.Request, shiftID int) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Patch shift
+// (PATCH /shift/{shiftID})
+func (_ Unimplemented) PatchShift(w http.ResponseWriter, r *http.Request, shiftID int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -302,6 +492,225 @@ func (siw *ServerInterfaceWrapper) PatchEmployee(w http.ResponseWriter, r *http.
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PatchEmployee(w, r, employeeID)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetShifts operation middleware
+func (siw *ServerInterfaceWrapper) GetShifts(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetShiftsParams
+
+	// ------------- Optional query parameter "filter" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "filter", r.URL.Query(), &params.Filter, runtime.BindQueryParameterOptions{Type: "object", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "filter", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetShifts(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateShift operation middleware
+func (siw *ServerInterfaceWrapper) CreateShift(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateShift(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetShiftTypes operation middleware
+func (siw *ServerInterfaceWrapper) GetShiftTypes(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetShiftTypes(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateShiftType operation middleware
+func (siw *ServerInterfaceWrapper) CreateShiftType(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateShiftType(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteShiftType operation middleware
+func (siw *ServerInterfaceWrapper) DeleteShiftType(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "shiftTypeID" -------------
+	var shiftTypeID int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "shiftTypeID", chi.URLParam(r, "shiftTypeID"), &shiftTypeID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "shiftTypeID", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteShiftType(w, r, shiftTypeID)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetShiftType operation middleware
+func (siw *ServerInterfaceWrapper) GetShiftType(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "shiftTypeID" -------------
+	var shiftTypeID int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "shiftTypeID", chi.URLParam(r, "shiftTypeID"), &shiftTypeID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "shiftTypeID", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetShiftType(w, r, shiftTypeID)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PatchShiftType operation middleware
+func (siw *ServerInterfaceWrapper) PatchShiftType(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "shiftTypeID" -------------
+	var shiftTypeID int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "shiftTypeID", chi.URLParam(r, "shiftTypeID"), &shiftTypeID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "shiftTypeID", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PatchShiftType(w, r, shiftTypeID)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteShift operation middleware
+func (siw *ServerInterfaceWrapper) DeleteShift(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "shiftID" -------------
+	var shiftID int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "shiftID", chi.URLParam(r, "shiftID"), &shiftID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "shiftID", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteShift(w, r, shiftID)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetShift operation middleware
+func (siw *ServerInterfaceWrapper) GetShift(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "shiftID" -------------
+	var shiftID int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "shiftID", chi.URLParam(r, "shiftID"), &shiftID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "shiftID", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetShift(w, r, shiftID)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PatchShift operation middleware
+func (siw *ServerInterfaceWrapper) PatchShift(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "shiftID" -------------
+	var shiftID int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "shiftID", chi.URLParam(r, "shiftID"), &shiftID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "shiftID", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PatchShift(w, r, shiftID)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -439,6 +848,36 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Patch(options.BaseURL+"/employee/{employeeID}", wrapper.PatchEmployee)
 	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/shift", wrapper.GetShifts)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/shift", wrapper.CreateShift)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/shift-type", wrapper.GetShiftTypes)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/shift-type", wrapper.CreateShiftType)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/shift-type/{shiftTypeID}", wrapper.DeleteShiftType)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/shift-type/{shiftTypeID}", wrapper.GetShiftType)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/shift-type/{shiftTypeID}", wrapper.PatchShiftType)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/shift/{shiftID}", wrapper.DeleteShift)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/shift/{shiftID}", wrapper.GetShift)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/shift/{shiftID}", wrapper.PatchShift)
+	})
 
 	return r
 }
@@ -484,15 +923,6 @@ type GetEmployees403JSONResponse struct{ ForbiddenJSONResponse }
 func (response GetEmployees403JSONResponse) VisitGetEmployeesResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(403)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type GetEmployees404JSONResponse struct{ NotFoundJSONResponse }
-
-func (response GetEmployees404JSONResponse) VisitGetEmployeesResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -691,6 +1121,463 @@ func (response PatchEmployee404JSONResponse) VisitPatchEmployeeResponse(w http.R
 	return json.NewEncoder(w).Encode(response)
 }
 
+type GetShiftsRequestObject struct {
+	Params GetShiftsParams
+}
+
+type GetShiftsResponseObject interface {
+	VisitGetShiftsResponse(w http.ResponseWriter) error
+}
+
+type GetShifts200JSONResponse ShiftList
+
+func (response GetShifts200JSONResponse) VisitGetShiftsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetShifts401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetShifts401JSONResponse) VisitGetShiftsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetShifts403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetShifts403JSONResponse) VisitGetShiftsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateShiftRequestObject struct {
+	Body *CreateShiftJSONRequestBody
+}
+
+type CreateShiftResponseObject interface {
+	VisitCreateShiftResponse(w http.ResponseWriter) error
+}
+
+type CreateShift201JSONResponse Shift
+
+func (response CreateShift201JSONResponse) VisitCreateShiftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateShift400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response CreateShift400JSONResponse) VisitCreateShiftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateShift401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CreateShift401JSONResponse) VisitCreateShiftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateShift403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response CreateShift403JSONResponse) VisitCreateShiftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetShiftTypesRequestObject struct {
+}
+
+type GetShiftTypesResponseObject interface {
+	VisitGetShiftTypesResponse(w http.ResponseWriter) error
+}
+
+type GetShiftTypes200JSONResponse ShiftTypeList
+
+func (response GetShiftTypes200JSONResponse) VisitGetShiftTypesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetShiftTypes401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetShiftTypes401JSONResponse) VisitGetShiftTypesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetShiftTypes403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetShiftTypes403JSONResponse) VisitGetShiftTypesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateShiftTypeRequestObject struct {
+	Body *CreateShiftTypeJSONRequestBody
+}
+
+type CreateShiftTypeResponseObject interface {
+	VisitCreateShiftTypeResponse(w http.ResponseWriter) error
+}
+
+type CreateShiftType201JSONResponse ShiftType
+
+func (response CreateShiftType201JSONResponse) VisitCreateShiftTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateShiftType400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response CreateShiftType400JSONResponse) VisitCreateShiftTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateShiftType401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CreateShiftType401JSONResponse) VisitCreateShiftTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateShiftType403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response CreateShiftType403JSONResponse) VisitCreateShiftTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteShiftTypeRequestObject struct {
+	ShiftTypeID int `json:"shiftTypeID"`
+}
+
+type DeleteShiftTypeResponseObject interface {
+	VisitDeleteShiftTypeResponse(w http.ResponseWriter) error
+}
+
+type DeleteShiftType204Response struct {
+}
+
+func (response DeleteShiftType204Response) VisitDeleteShiftTypeResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteShiftType401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteShiftType401JSONResponse) VisitDeleteShiftTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteShiftType403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response DeleteShiftType403JSONResponse) VisitDeleteShiftTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteShiftType404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeleteShiftType404JSONResponse) VisitDeleteShiftTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteShiftType409JSONResponse struct{ ConflictJSONResponse }
+
+func (response DeleteShiftType409JSONResponse) VisitDeleteShiftTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetShiftTypeRequestObject struct {
+	ShiftTypeID int `json:"shiftTypeID"`
+}
+
+type GetShiftTypeResponseObject interface {
+	VisitGetShiftTypeResponse(w http.ResponseWriter) error
+}
+
+type GetShiftType200JSONResponse ShiftType
+
+func (response GetShiftType200JSONResponse) VisitGetShiftTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetShiftType401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetShiftType401JSONResponse) VisitGetShiftTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetShiftType403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetShiftType403JSONResponse) VisitGetShiftTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetShiftType404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetShiftType404JSONResponse) VisitGetShiftTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchShiftTypeRequestObject struct {
+	ShiftTypeID int `json:"shiftTypeID"`
+	Body        *PatchShiftTypeJSONRequestBody
+}
+
+type PatchShiftTypeResponseObject interface {
+	VisitPatchShiftTypeResponse(w http.ResponseWriter) error
+}
+
+type PatchShiftType200JSONResponse ShiftType
+
+func (response PatchShiftType200JSONResponse) VisitPatchShiftTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchShiftType400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response PatchShiftType400JSONResponse) VisitPatchShiftTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchShiftType401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response PatchShiftType401JSONResponse) VisitPatchShiftTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchShiftType403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response PatchShiftType403JSONResponse) VisitPatchShiftTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchShiftType404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PatchShiftType404JSONResponse) VisitPatchShiftTypeResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteShiftRequestObject struct {
+	ShiftID int `json:"shiftID"`
+}
+
+type DeleteShiftResponseObject interface {
+	VisitDeleteShiftResponse(w http.ResponseWriter) error
+}
+
+type DeleteShift204Response struct {
+}
+
+func (response DeleteShift204Response) VisitDeleteShiftResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteShift401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteShift401JSONResponse) VisitDeleteShiftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteShift403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response DeleteShift403JSONResponse) VisitDeleteShiftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteShift404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeleteShift404JSONResponse) VisitDeleteShiftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteShift409JSONResponse struct{ ConflictJSONResponse }
+
+func (response DeleteShift409JSONResponse) VisitDeleteShiftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetShiftRequestObject struct {
+	ShiftID int `json:"shiftID"`
+}
+
+type GetShiftResponseObject interface {
+	VisitGetShiftResponse(w http.ResponseWriter) error
+}
+
+type GetShift200JSONResponse Shift
+
+func (response GetShift200JSONResponse) VisitGetShiftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetShift401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetShift401JSONResponse) VisitGetShiftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetShift403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetShift403JSONResponse) VisitGetShiftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetShift404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetShift404JSONResponse) VisitGetShiftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchShiftRequestObject struct {
+	ShiftID int `json:"shiftID"`
+	Body    *PatchShiftJSONRequestBody
+}
+
+type PatchShiftResponseObject interface {
+	VisitPatchShiftResponse(w http.ResponseWriter) error
+}
+
+type PatchShift200JSONResponse Shift
+
+func (response PatchShift200JSONResponse) VisitPatchShiftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchShift400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response PatchShift400JSONResponse) VisitPatchShiftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchShift401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response PatchShift401JSONResponse) VisitPatchShiftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchShift403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response PatchShift403JSONResponse) VisitPatchShiftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchShift404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PatchShift404JSONResponse) VisitPatchShiftResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// Get all employees
@@ -708,6 +1595,36 @@ type StrictServerInterface interface {
 	// Patch employee
 	// (PATCH /employee/{employeeID})
 	PatchEmployee(ctx context.Context, request PatchEmployeeRequestObject) (PatchEmployeeResponseObject, error)
+	// Get all shifts
+	// (GET /shift)
+	GetShifts(ctx context.Context, request GetShiftsRequestObject) (GetShiftsResponseObject, error)
+	// Create shift
+	// (POST /shift)
+	CreateShift(ctx context.Context, request CreateShiftRequestObject) (CreateShiftResponseObject, error)
+	// Get all shift types
+	// (GET /shift-type)
+	GetShiftTypes(ctx context.Context, request GetShiftTypesRequestObject) (GetShiftTypesResponseObject, error)
+	// Create shift type
+	// (POST /shift-type)
+	CreateShiftType(ctx context.Context, request CreateShiftTypeRequestObject) (CreateShiftTypeResponseObject, error)
+	// Delete shift type
+	// (DELETE /shift-type/{shiftTypeID})
+	DeleteShiftType(ctx context.Context, request DeleteShiftTypeRequestObject) (DeleteShiftTypeResponseObject, error)
+	// Get shift type
+	// (GET /shift-type/{shiftTypeID})
+	GetShiftType(ctx context.Context, request GetShiftTypeRequestObject) (GetShiftTypeResponseObject, error)
+	// Patch shift type
+	// (PATCH /shift-type/{shiftTypeID})
+	PatchShiftType(ctx context.Context, request PatchShiftTypeRequestObject) (PatchShiftTypeResponseObject, error)
+	// Delete shift
+	// (DELETE /shift/{shiftID})
+	DeleteShift(ctx context.Context, request DeleteShiftRequestObject) (DeleteShiftResponseObject, error)
+	// Get shift
+	// (GET /shift/{shiftID})
+	GetShift(ctx context.Context, request GetShiftRequestObject) (GetShiftResponseObject, error)
+	// Patch shift
+	// (PATCH /shift/{shiftID})
+	PatchShift(ctx context.Context, request PatchShiftRequestObject) (PatchShiftResponseObject, error)
 }
 
 type StrictHandlerFunc = strictnethttp.StrictHTTPHandlerFunc
@@ -881,29 +1798,320 @@ func (sh *strictHandler) PatchEmployee(w http.ResponseWriter, r *http.Request, e
 	}
 }
 
+// GetShifts operation middleware
+func (sh *strictHandler) GetShifts(w http.ResponseWriter, r *http.Request, params GetShiftsParams) {
+	var request GetShiftsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetShifts(ctx, request.(GetShiftsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetShifts")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetShiftsResponseObject); ok {
+		if err := validResponse.VisitGetShiftsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateShift operation middleware
+func (sh *strictHandler) CreateShift(w http.ResponseWriter, r *http.Request) {
+	var request CreateShiftRequestObject
+
+	var body CreateShiftJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateShift(ctx, request.(CreateShiftRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateShift")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateShiftResponseObject); ok {
+		if err := validResponse.VisitCreateShiftResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetShiftTypes operation middleware
+func (sh *strictHandler) GetShiftTypes(w http.ResponseWriter, r *http.Request) {
+	var request GetShiftTypesRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetShiftTypes(ctx, request.(GetShiftTypesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetShiftTypes")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetShiftTypesResponseObject); ok {
+		if err := validResponse.VisitGetShiftTypesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateShiftType operation middleware
+func (sh *strictHandler) CreateShiftType(w http.ResponseWriter, r *http.Request) {
+	var request CreateShiftTypeRequestObject
+
+	var body CreateShiftTypeJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateShiftType(ctx, request.(CreateShiftTypeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateShiftType")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateShiftTypeResponseObject); ok {
+		if err := validResponse.VisitCreateShiftTypeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteShiftType operation middleware
+func (sh *strictHandler) DeleteShiftType(w http.ResponseWriter, r *http.Request, shiftTypeID int) {
+	var request DeleteShiftTypeRequestObject
+
+	request.ShiftTypeID = shiftTypeID
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteShiftType(ctx, request.(DeleteShiftTypeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteShiftType")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteShiftTypeResponseObject); ok {
+		if err := validResponse.VisitDeleteShiftTypeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetShiftType operation middleware
+func (sh *strictHandler) GetShiftType(w http.ResponseWriter, r *http.Request, shiftTypeID int) {
+	var request GetShiftTypeRequestObject
+
+	request.ShiftTypeID = shiftTypeID
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetShiftType(ctx, request.(GetShiftTypeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetShiftType")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetShiftTypeResponseObject); ok {
+		if err := validResponse.VisitGetShiftTypeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PatchShiftType operation middleware
+func (sh *strictHandler) PatchShiftType(w http.ResponseWriter, r *http.Request, shiftTypeID int) {
+	var request PatchShiftTypeRequestObject
+
+	request.ShiftTypeID = shiftTypeID
+
+	var body PatchShiftTypeJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PatchShiftType(ctx, request.(PatchShiftTypeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PatchShiftType")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PatchShiftTypeResponseObject); ok {
+		if err := validResponse.VisitPatchShiftTypeResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteShift operation middleware
+func (sh *strictHandler) DeleteShift(w http.ResponseWriter, r *http.Request, shiftID int) {
+	var request DeleteShiftRequestObject
+
+	request.ShiftID = shiftID
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteShift(ctx, request.(DeleteShiftRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteShift")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteShiftResponseObject); ok {
+		if err := validResponse.VisitDeleteShiftResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetShift operation middleware
+func (sh *strictHandler) GetShift(w http.ResponseWriter, r *http.Request, shiftID int) {
+	var request GetShiftRequestObject
+
+	request.ShiftID = shiftID
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetShift(ctx, request.(GetShiftRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetShift")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetShiftResponseObject); ok {
+		if err := validResponse.VisitGetShiftResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PatchShift operation middleware
+func (sh *strictHandler) PatchShift(w http.ResponseWriter, r *http.Request, shiftID int) {
+	var request PatchShiftRequestObject
+
+	request.ShiftID = shiftID
+
+	var body PatchShiftJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PatchShift(ctx, request.(PatchShiftRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PatchShift")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PatchShiftResponseObject); ok {
+		if err := validResponse.VisitPatchShiftResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"MXkwv8n/DwAA//+pn5dJ7DQAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -14,6 +14,14 @@ type Employee struct {
 	User       *UserShort
 }
 
+type EmployeeShort struct {
+	ID         int64
+	FirstName  string
+	MiddleName *string
+	SecondName string
+	Active     bool
+}
+
 type EmployeeCreate struct {
 	FirstName  string
 	MiddleName *string

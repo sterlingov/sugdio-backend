@@ -23,7 +23,7 @@ func main() {
 	repo := repository.NewPostgresRepo(db)
 
 	empService := service.NewEmployeeService(repo, repo, repo, repo, repo, repo)
-	shiftService := service.NewShiftService(repo)
+	shiftService := service.NewShiftService(repo, repo)
 
 	h := handlers.NewHandler(empService, shiftService)
 
