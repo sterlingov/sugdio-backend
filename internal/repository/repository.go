@@ -53,4 +53,10 @@ type ShiftRepository interface {
 
 type VacationRepository interface {
 	HasVacations(ctx context.Context, EmployeeID int64) (bool, error)
+
+	CreateVacation(ctx context.Context, vacation *domain.VacationCreate) (int, error)
+	GetByIDVacation(ctx context.Context, vacationID int) (*domain.Vacation, error)
+	ListVacation(ctx context.Context, filter domain.VacationFilter) ([]domain.Vacation, error)
+	UpdateVacation(ctx context.Context, vacationID int, patch domain.VacationPatch) error
+	DeleteVacation(ctx context.Context, vacationID int) error
 }
