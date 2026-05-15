@@ -31,4 +31,18 @@ func TestPatchBuilder(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("success update with raw sql append", func(t *testing.T) {
+		builder := repository.NewPatchBuilder()
+		builder.Head("users")
+		builder.Add("name", "Alice")
+		builder.Where("id", 1)
+		builder.RawAddSql(`
+			AND NOT EXISTS (
+   				SELECT 1 FROM vacations
+    			WHERE employee_id = shifts.employee_id -- берет текущего из базы
+      			AND start_date <= shifts.date AND end_date >= shifts.date
+			)
+		`)
+	})
 }

@@ -51,6 +51,19 @@ func (c *PatchBuilder) String() string {
 	return c.sb.String()
 }
 
+func (c *PatchBuilder) RawAddSql(sql string) {
+	c.sb.WriteString(sql)
+}
+
+func (c *PatchBuilder) RawAddArg(value any) {
+	c.args = append(c.args, value)
+}
+
+func (c *PatchBuilder) RawIncArgID() int {
+	c.argID++
+	return c.argID
+}
+
 func (c *PatchBuilder) Len() int {
 	return len(c.args)
 }

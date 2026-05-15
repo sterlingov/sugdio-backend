@@ -21,4 +21,6 @@ var (
 	ErrEmployeeHasVacations = errors.New("cannot delete employee: it has vacations")
 
 	ErrShiftTypeInUse = errors.New("cannot delete shift type: it is using by some shifts")
+
+	ErrDateOverlap = errors.New("date overlap: date for this employee is taken")
 )

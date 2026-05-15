@@ -58,12 +58,23 @@ func (r *PostgresRepository) CreateShift(ctx context.Context, shift *domain.Shif
 		employee_id, 
 		status
 		)
-		VALUES ($1, $2, $3, $4) 
+		SELECT $1, $2, $3, $4
+		WHERE NOT EXISTS (
+    		SELECT 1 FROM vacations
+    		WHERE employee_id = $1
+      			AND start_date <= $2 AND end_date >= $2
+		) 
 		RETURNING id`,
 		shift.Date,
 		shift.ShiftTypeID,
 		shift.EmployeeID,
 		shift.Status).Scan(&insertedID)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return insertedID, domain.ErrDateOverlap
+		}
+	}
 
 	return insertedID, err
 }
@@ -171,14 +182,37 @@ func (r *PostgresRepository) UpdateShift(ctx context.Context, id int, patch doma
 
 	pb.Where("id", id)
 
-	result, err := r.db.ExecContext(ctx, pb.String(), pb.Args()...)
+	query := pb.String()
+
+	baseArgsCount := len(pb.Args())
+	empParamIdx := baseArgsCount + 1
+	dateParamIdx := baseArgsCount + 2
+
+	query += fmt.Sprintf(` 
+		AND NOT EXISTS (
+			SELECT 1 FROM vacations
+			WHERE employee_id = COALESCE($%d, shifts.employee_id)
+			  AND start_date <= COALESCE($%d, shifts.date) 
+			  AND end_date   >= COALESCE($%d, shifts.date)
+		)`, empParamIdx, dateParamIdx, dateParamIdx)
+
+	pb.RawAddArg(patch.EmployeeID)
+	pb.RawAddArg(patch.Date)
+
+	result, err := r.db.ExecContext(ctx, query, pb.Args()...)
+
 	if err != nil {
 		return fmt.Errorf("update shift: %w", err)
 	}
 
 	rows, _ := result.RowsAffected()
 	if rows == 0 {
-		return domain.ErrNotFound
+		var exists bool
+		_ = r.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM shifts WHERE id = $1)", id).Scan(&exists)
+		if !exists {
+			return domain.ErrNotFound
+		}
+		return domain.ErrDateOverlap
 	}
 
 	return nil

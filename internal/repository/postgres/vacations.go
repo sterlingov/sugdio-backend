@@ -33,9 +33,28 @@ func (r *PostgresRepository) CreateVacation(ctx context.Context, vacation *domai
 		end_date, 
 		comment
 		)
-		VALUES ($1, $2, $3, $4) 
+		SELECT $1, $2, $3, $4
+		WHERE 
+		NOT EXISTS (
+			SELECT 1 FROM shifts
+			WHERE employee_id = $1
+			    AND date >= $2 
+      			AND date <= $3	
+		)
+		AND NOT EXISTS (
+    		SELECT 1 FROM vacations
+    		WHERE employee_id = $1
+      		AND (start_date, end_date) OVERLAPS ($2, $3)
+  		)
 		RETURNING id`,
+		vacation.EmployeeID, vacation.StartDate, vacation.EndDate, vacation.Comment,
 	).Scan(&insertedID)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return insertedID, domain.ErrDateOverlap
+		}
+	}
 
 	return insertedID, err
 }
@@ -142,14 +161,44 @@ func (r *PostgresRepository) UpdateVacation(ctx context.Context, vacationID int,
 
 	pb.Where("id", vacationID)
 
-	result, err := r.db.ExecContext(ctx, pb.String(), pb.Args()...)
+	baseArgsCount := len(pb.Args())
+	startParamIdx := baseArgsCount + 1
+	endParamIdx := baseArgsCount + 2
+	vacationIDParamIDx := baseArgsCount + 3
+
+	query := pb.String() + fmt.Sprintf(` 
+		AND NOT EXISTS (
+			SELECT 1 FROM vacations v
+			WHERE v.employee_id = vacations.employee_id
+			  AND v.end_date   >= COALESCE($%d, vacations.start_date)
+			  AND v.start_date <= COALESCE($%d, vacations.end_date) 
+			  AND v.id != $%d
+		)
+		AND NOT EXISTS (
+			SELECT 1 FROM shifts
+			WHERE employee_id = vacations.employee_id
+			AND date >= COALESCE($%d, vacations.start_date)
+			AND date <= COALESCE($%d, vacations.end_date)
+
+		)`, startParamIdx, endParamIdx, vacationIDParamIDx, startParamIdx, endParamIdx)
+
+	pb.RawAddArg(patch.StartDate)
+	pb.RawAddArg(patch.EndDate)
+	pb.RawAddArg(vacationID)
+
+	result, err := r.db.ExecContext(ctx, query, pb.Args()...)
 	if err != nil {
 		return fmt.Errorf("update vacation: %w", err)
 	}
 
 	rows, _ := result.RowsAffected()
 	if rows == 0 {
-		return domain.ErrNotFound
+		var exists bool
+		_ = r.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM vacations WHERE id = $1)", vacationID).Scan(&exists)
+		if !exists {
+			return domain.ErrNotFound
+		}
+		return domain.ErrDateOverlap
 	}
 
 	return nil
