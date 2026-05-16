@@ -24,8 +24,9 @@ func main() {
 
 	empService := service.NewEmployeeService(repo, repo, repo, repo, repo, repo)
 	shiftService := service.NewShiftService(repo, repo)
+	vacService := service.NewVacationService(repo, repo)
 
-	h := handlers.NewHandler(empService, shiftService)
+	h := handlers.NewHandler(empService, shiftService, vacService)
 
 	strictHandler := api.NewStrictHandler(h, nil)
 

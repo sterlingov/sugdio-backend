@@ -61,3 +61,25 @@ func toApiShiftType(st *domain.ShiftType) api.ShiftType {
 	}
 	return res
 }
+
+func toApiVacation(vac *domain.Vacation) api.Vacation {
+	res := api.Vacation{
+		Comment:   vac.Comment,
+		CreatedAt: &vac.CreatedAt,
+		Status:    string(vac.Status),
+		EndDate:   &types.Date{Time: vac.EndDate},
+		Id:        vac.ID,
+		StartDate: &types.Date{Time: vac.StartDate},
+		UpdatedAt: &vac.UpdatedAt,
+	}
+
+	emp := api.EmployeeShort{
+		Active:     &vac.Employee.Active,
+		FirstName:  vac.Employee.FirstName,
+		Id:         vac.Employee.ID,
+		MiddleName: vac.Employee.MiddleName,
+		SecondName: vac.Employee.SecondName,
+	}
+	res.Employee = &emp
+	return res
+}

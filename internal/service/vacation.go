@@ -15,10 +15,10 @@ func NewVacationService(repo repository.VacationRepository, shiftRepo repository
 	return &VacationService{repository: repo, shiftRepository: shiftRepo}
 }
 
-func (s *VacationService) CreateVacation(ctx context.Context, sc *domain.VacationCreate) (*domain.Vacation, error) {
+func (s *VacationService) CreateVacation(ctx context.Context, vc *domain.VacationCreate) (*domain.Vacation, error) {
 	var vacation *domain.Vacation
 
-	id, err := s.repository.CreateVacation(ctx, sc)
+	id, err := s.repository.CreateVacation(ctx, vc)
 
 	if err != nil {
 		return vacation, err

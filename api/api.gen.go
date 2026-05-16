@@ -188,6 +188,57 @@ type UserShort struct {
 	Role  string `json:"role"`
 }
 
+// Vacation defines model for Vacation.
+type Vacation struct {
+	Comment   *string             `json:"comment,omitempty"`
+	CreatedAt *time.Time          `json:"created_at,omitempty"`
+	Employee  *EmployeeShort      `json:"employee,omitempty"`
+	EndDate   *openapi_types.Date `json:"end_date,omitempty"`
+	Id        int                 `json:"id"`
+	StartDate *openapi_types.Date `json:"start_date,omitempty"`
+	Status    string              `json:"status"`
+	UpdatedAt *time.Time          `json:"updated_at,omitempty"`
+}
+
+// VacationBase defines model for VacationBase.
+type VacationBase struct {
+	Comment   *string             `json:"comment,omitempty"`
+	EndDate   *openapi_types.Date `json:"end_date,omitempty"`
+	StartDate *openapi_types.Date `json:"start_date,omitempty"`
+}
+
+// VacationCreate defines model for VacationCreate.
+type VacationCreate struct {
+	Comment    *string             `json:"comment,omitempty"`
+	EmployeeId *int                `json:"employee_id,omitempty"`
+	EndDate    *openapi_types.Date `json:"end_date,omitempty"`
+	StartDate  *openapi_types.Date `json:"start_date,omitempty"`
+}
+
+// VacationFilter defines model for VacationFilter.
+type VacationFilter struct {
+	DateFrom   *openapi_types.Date `json:"date_from,omitempty"`
+	DateTo     *openapi_types.Date `json:"date_to,omitempty"`
+	EmployeeId *int                `json:"employee_id,omitempty"`
+	Limit      *int                `json:"limit,omitempty"`
+	Offset     *int                `json:"offset,omitempty"`
+	Status     *string             `json:"status,omitempty"`
+}
+
+// VacationList defines model for VacationList.
+type VacationList struct {
+	Items *[]Vacation `json:"items,omitempty"`
+	Total *int        `json:"total,omitempty"`
+}
+
+// VacationPatch defines model for VacationPatch.
+type VacationPatch struct {
+	Comment   *string             `json:"comment,omitempty"`
+	EndDate   *openapi_types.Date `json:"end_date,omitempty"`
+	StartDate *openapi_types.Date `json:"start_date,omitempty"`
+	Status    *string             `json:"status,omitempty"`
+}
+
 // BadRequest defines model for BadRequest.
 type BadRequest = Error
 
@@ -215,6 +266,12 @@ type GetShiftsParams struct {
 	Filter *ShiftFilter `form:"filter,omitempty" json:"filter,omitempty"`
 }
 
+// GetVacationsParams defines parameters for GetVacations.
+type GetVacationsParams struct {
+	// Filter Vacations filter
+	Filter *VacationFilter `form:"filter,omitempty" json:"filter,omitempty"`
+}
+
 // CreateEmployeeJSONRequestBody defines body for CreateEmployee for application/json ContentType.
 type CreateEmployeeJSONRequestBody = EmployeeCreate
 
@@ -232,6 +289,12 @@ type PatchShiftTypeJSONRequestBody = ShiftTypePatch
 
 // PatchShiftJSONRequestBody defines body for PatchShift for application/json ContentType.
 type PatchShiftJSONRequestBody = ShiftPatch
+
+// CreateVacationJSONRequestBody defines body for CreateVacation for application/json ContentType.
+type CreateVacationJSONRequestBody = VacationCreate
+
+// PatchVacationJSONRequestBody defines body for PatchVacation for application/json ContentType.
+type PatchVacationJSONRequestBody = VacationPatch
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -280,6 +343,21 @@ type ServerInterface interface {
 	// Patch shift
 	// (PATCH /shift/{shiftID})
 	PatchShift(w http.ResponseWriter, r *http.Request, shiftID int)
+	// Get all vacations
+	// (GET /vacation)
+	GetVacations(w http.ResponseWriter, r *http.Request, params GetVacationsParams)
+	// Create vacation
+	// (POST /vacation)
+	CreateVacation(w http.ResponseWriter, r *http.Request)
+	// Delete vacation
+	// (DELETE /vacation/{vacationID})
+	DeleteVacation(w http.ResponseWriter, r *http.Request, vacationID int)
+	// Get vacation
+	// (GET /vacation/{vacationID})
+	GetVacation(w http.ResponseWriter, r *http.Request, vacationID int)
+	// Patch vacation
+	// (PATCH /vacation/{vacationID})
+	PatchVacation(w http.ResponseWriter, r *http.Request, vacationID int)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -373,6 +451,36 @@ func (_ Unimplemented) GetShift(w http.ResponseWriter, r *http.Request, shiftID 
 // Patch shift
 // (PATCH /shift/{shiftID})
 func (_ Unimplemented) PatchShift(w http.ResponseWriter, r *http.Request, shiftID int) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get all vacations
+// (GET /vacation)
+func (_ Unimplemented) GetVacations(w http.ResponseWriter, r *http.Request, params GetVacationsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Create vacation
+// (POST /vacation)
+func (_ Unimplemented) CreateVacation(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Delete vacation
+// (DELETE /vacation/{vacationID})
+func (_ Unimplemented) DeleteVacation(w http.ResponseWriter, r *http.Request, vacationID int) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get vacation
+// (GET /vacation/{vacationID})
+func (_ Unimplemented) GetVacation(w http.ResponseWriter, r *http.Request, vacationID int) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Patch vacation
+// (PATCH /vacation/{vacationID})
+func (_ Unimplemented) PatchVacation(w http.ResponseWriter, r *http.Request, vacationID int) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -720,6 +828,122 @@ func (siw *ServerInterfaceWrapper) PatchShift(w http.ResponseWriter, r *http.Req
 	handler.ServeHTTP(w, r)
 }
 
+// GetVacations operation middleware
+func (siw *ServerInterfaceWrapper) GetVacations(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetVacationsParams
+
+	// ------------- Optional query parameter "filter" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "filter", r.URL.Query(), &params.Filter, runtime.BindQueryParameterOptions{Type: "object", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "filter", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetVacations(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateVacation operation middleware
+func (siw *ServerInterfaceWrapper) CreateVacation(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateVacation(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteVacation operation middleware
+func (siw *ServerInterfaceWrapper) DeleteVacation(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "vacationID" -------------
+	var vacationID int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "vacationID", chi.URLParam(r, "vacationID"), &vacationID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "vacationID", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteVacation(w, r, vacationID)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetVacation operation middleware
+func (siw *ServerInterfaceWrapper) GetVacation(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "vacationID" -------------
+	var vacationID int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "vacationID", chi.URLParam(r, "vacationID"), &vacationID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "vacationID", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetVacation(w, r, vacationID)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PatchVacation operation middleware
+func (siw *ServerInterfaceWrapper) PatchVacation(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "vacationID" -------------
+	var vacationID int
+
+	err = runtime.BindStyledParameterWithOptions("simple", "vacationID", chi.URLParam(r, "vacationID"), &vacationID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "integer", Format: ""})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "vacationID", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PatchVacation(w, r, vacationID)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -877,6 +1101,21 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Patch(options.BaseURL+"/shift/{shiftID}", wrapper.PatchShift)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/vacation", wrapper.GetVacations)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/vacation", wrapper.CreateVacation)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/vacation/{vacationID}", wrapper.DeleteVacation)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/vacation/{vacationID}", wrapper.GetVacation)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/vacation/{vacationID}", wrapper.PatchVacation)
 	})
 
 	return r
@@ -1578,6 +1817,244 @@ func (response PatchShift404JSONResponse) VisitPatchShiftResponse(w http.Respons
 	return json.NewEncoder(w).Encode(response)
 }
 
+type GetVacationsRequestObject struct {
+	Params GetVacationsParams
+}
+
+type GetVacationsResponseObject interface {
+	VisitGetVacationsResponse(w http.ResponseWriter) error
+}
+
+type GetVacations200JSONResponse VacationList
+
+func (response GetVacations200JSONResponse) VisitGetVacationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVacations401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetVacations401JSONResponse) VisitGetVacationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVacations403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetVacations403JSONResponse) VisitGetVacationsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateVacationRequestObject struct {
+	Body *CreateVacationJSONRequestBody
+}
+
+type CreateVacationResponseObject interface {
+	VisitCreateVacationResponse(w http.ResponseWriter) error
+}
+
+type CreateVacation201JSONResponse Vacation
+
+func (response CreateVacation201JSONResponse) VisitCreateVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateVacation400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response CreateVacation400JSONResponse) VisitCreateVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateVacation401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response CreateVacation401JSONResponse) VisitCreateVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateVacation403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response CreateVacation403JSONResponse) VisitCreateVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateVacation409JSONResponse struct{ ConflictJSONResponse }
+
+func (response CreateVacation409JSONResponse) VisitCreateVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteVacationRequestObject struct {
+	VacationID int `json:"vacationID"`
+}
+
+type DeleteVacationResponseObject interface {
+	VisitDeleteVacationResponse(w http.ResponseWriter) error
+}
+
+type DeleteVacation204Response struct {
+}
+
+func (response DeleteVacation204Response) VisitDeleteVacationResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteVacation401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response DeleteVacation401JSONResponse) VisitDeleteVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteVacation403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response DeleteVacation403JSONResponse) VisitDeleteVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteVacation404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response DeleteVacation404JSONResponse) VisitDeleteVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVacationRequestObject struct {
+	VacationID int `json:"vacationID"`
+}
+
+type GetVacationResponseObject interface {
+	VisitGetVacationResponse(w http.ResponseWriter) error
+}
+
+type GetVacation200JSONResponse Vacation
+
+func (response GetVacation200JSONResponse) VisitGetVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVacation401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response GetVacation401JSONResponse) VisitGetVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVacation403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response GetVacation403JSONResponse) VisitGetVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetVacation404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response GetVacation404JSONResponse) VisitGetVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchVacationRequestObject struct {
+	VacationID int `json:"vacationID"`
+	Body       *PatchVacationJSONRequestBody
+}
+
+type PatchVacationResponseObject interface {
+	VisitPatchVacationResponse(w http.ResponseWriter) error
+}
+
+type PatchVacation200JSONResponse Vacation
+
+func (response PatchVacation200JSONResponse) VisitPatchVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchVacation400JSONResponse struct{ BadRequestJSONResponse }
+
+func (response PatchVacation400JSONResponse) VisitPatchVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchVacation401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response PatchVacation401JSONResponse) VisitPatchVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchVacation403JSONResponse struct{ ForbiddenJSONResponse }
+
+func (response PatchVacation403JSONResponse) VisitPatchVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchVacation404JSONResponse struct{ NotFoundJSONResponse }
+
+func (response PatchVacation404JSONResponse) VisitPatchVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type PatchVacation409JSONResponse struct{ ConflictJSONResponse }
+
+func (response PatchVacation409JSONResponse) VisitPatchVacationResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// Get all employees
@@ -1625,6 +2102,21 @@ type StrictServerInterface interface {
 	// Patch shift
 	// (PATCH /shift/{shiftID})
 	PatchShift(ctx context.Context, request PatchShiftRequestObject) (PatchShiftResponseObject, error)
+	// Get all vacations
+	// (GET /vacation)
+	GetVacations(ctx context.Context, request GetVacationsRequestObject) (GetVacationsResponseObject, error)
+	// Create vacation
+	// (POST /vacation)
+	CreateVacation(ctx context.Context, request CreateVacationRequestObject) (CreateVacationResponseObject, error)
+	// Delete vacation
+	// (DELETE /vacation/{vacationID})
+	DeleteVacation(ctx context.Context, request DeleteVacationRequestObject) (DeleteVacationResponseObject, error)
+	// Get vacation
+	// (GET /vacation/{vacationID})
+	GetVacation(ctx context.Context, request GetVacationRequestObject) (GetVacationResponseObject, error)
+	// Patch vacation
+	// (PATCH /vacation/{vacationID})
+	PatchVacation(ctx context.Context, request PatchVacationRequestObject) (PatchVacationResponseObject, error)
 }
 
 type StrictHandlerFunc = strictnethttp.StrictHTTPHandlerFunc
@@ -2080,38 +2572,185 @@ func (sh *strictHandler) PatchShift(w http.ResponseWriter, r *http.Request, shif
 	}
 }
 
+// GetVacations operation middleware
+func (sh *strictHandler) GetVacations(w http.ResponseWriter, r *http.Request, params GetVacationsParams) {
+	var request GetVacationsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetVacations(ctx, request.(GetVacationsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetVacations")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetVacationsResponseObject); ok {
+		if err := validResponse.VisitGetVacationsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateVacation operation middleware
+func (sh *strictHandler) CreateVacation(w http.ResponseWriter, r *http.Request) {
+	var request CreateVacationRequestObject
+
+	var body CreateVacationJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateVacation(ctx, request.(CreateVacationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateVacation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateVacationResponseObject); ok {
+		if err := validResponse.VisitCreateVacationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteVacation operation middleware
+func (sh *strictHandler) DeleteVacation(w http.ResponseWriter, r *http.Request, vacationID int) {
+	var request DeleteVacationRequestObject
+
+	request.VacationID = vacationID
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteVacation(ctx, request.(DeleteVacationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteVacation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteVacationResponseObject); ok {
+		if err := validResponse.VisitDeleteVacationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetVacation operation middleware
+func (sh *strictHandler) GetVacation(w http.ResponseWriter, r *http.Request, vacationID int) {
+	var request GetVacationRequestObject
+
+	request.VacationID = vacationID
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetVacation(ctx, request.(GetVacationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetVacation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetVacationResponseObject); ok {
+		if err := validResponse.VisitGetVacationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PatchVacation operation middleware
+func (sh *strictHandler) PatchVacation(w http.ResponseWriter, r *http.Request, vacationID int) {
+	var request PatchVacationRequestObject
+
+	request.VacationID = vacationID
+
+	var body PatchVacationJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PatchVacation(ctx, request.(PatchVacationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PatchVacation")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PatchVacationResponseObject); ok {
+		if err := validResponse.VisitPatchVacationResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"MXkwv8n/DwAA//+pn5dJ7DQAAA==",
+	"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",
+	"AA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
