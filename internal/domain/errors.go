@@ -23,4 +23,7 @@ var (
 	ErrShiftTypeInUse = errors.New("cannot delete shift type: it is using by some shifts")
 
 	ErrDateOverlap = errors.New("date overlap: date for this employee is taken")
+
+	ErrUserAlreadyExists = errors.New("user with this email already exists")
+	ErrWrongUserRole     = errors.New("wrong user role")
 )

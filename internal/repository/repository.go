@@ -19,6 +19,7 @@ type EmployeeRepository interface {
 
 type AuthRepository interface {
 	GetByEmailAuth(ctx context.Context, email string) (domain.UserCredentials, error)
+	CreateUserAuth(ctx context.Context, email, passwordHash, role string) (domain.UserShort, error)
 }
 
 type DepartmentRepository interface {

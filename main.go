@@ -22,7 +22,7 @@ func main() {
 
 	repo := repository.NewPostgresRepo(db)
 
-	authService := service.NewAuthService(repo)
+	authService := service.NewAuthService(repo, "SECRET")
 	empService := service.NewEmployeeService(repo, repo, repo, repo, repo, repo)
 	shiftService := service.NewShiftService(repo, repo)
 	vacService := service.NewVacationService(repo, repo)

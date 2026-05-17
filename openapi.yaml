@@ -728,6 +728,58 @@ paths:
         "401":
           $ref: '#/components/responses/Unauthorized'
 
+  /auth/register:
+    post:
+      tags:
+        - auth
+      summary: Register new user
+      operationId: authRegister
+      requestBody:
+        description: New user data
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+                - role
+              properties:
+                email: 
+                  type: string
+                  format: email
+                  example: "mail@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "SecretPassword123"
+                  minLength: 8
+                role:
+                  type: string
+                  example: "employee/manager/admin"
+
+      responses:
+        "201":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  email:
+                    type: string
+                    format: email
+                    example: "mail@example.com"
+                  role:
+                    type: string
+                    example: "employee/manager/admin"
+        "400":
+          $ref: '#/components/responses/BadRequest'
+        "409":
+          $ref: '#/components/responses/Conflict'
 
 components:
   responses:
