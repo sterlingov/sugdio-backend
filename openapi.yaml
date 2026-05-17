@@ -5,6 +5,9 @@ info:
   description: API Specification for SUGDiO API
   version: 0.0.1
 
+security:
+  - BearerAuth: []
+
 tags:
   - name: employee
     description: Manage employees
@@ -685,6 +688,46 @@ paths:
         
         "403":
           $ref: '#/components/responses/Forbidden'   
+  
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: User login
+      operationId: authLogin
+      security: [] 
+      requestBody:
+        description: User credentials
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email: 
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+
 
 components:
   responses:
@@ -1141,3 +1184,8 @@ components:
           type: integer
           nullable: true
     
+  securitySchemes:
+    BearerAuth:            
+      type: http
+      scheme: bearer
+      bearerFormat: JWT    

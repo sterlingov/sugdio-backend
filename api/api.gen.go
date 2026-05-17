@@ -23,6 +23,10 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
+const (
+	BearerAuthScopes = "BearerAuth.Scopes"
+)
+
 // DepartmentShort defines model for DepartmentShort.
 type DepartmentShort struct {
 	Id   int    `json:"id"`
@@ -254,6 +258,12 @@ type NotFound = Error
 // Unauthorized defines model for Unauthorized.
 type Unauthorized = Error
 
+// AuthLoginJSONBody defines parameters for AuthLogin.
+type AuthLoginJSONBody struct {
+	Email    openapi_types.Email `json:"email"`
+	Password string              `json:"password"`
+}
+
 // GetEmployeesParams defines parameters for GetEmployees.
 type GetEmployeesParams struct {
 	// Filter Employees filter
@@ -271,6 +281,9 @@ type GetVacationsParams struct {
 	// Filter Vacations filter
 	Filter *VacationFilter `form:"filter,omitempty" json:"filter,omitempty"`
 }
+
+// AuthLoginJSONRequestBody defines body for AuthLogin for application/json ContentType.
+type AuthLoginJSONRequestBody AuthLoginJSONBody
 
 // CreateEmployeeJSONRequestBody defines body for CreateEmployee for application/json ContentType.
 type CreateEmployeeJSONRequestBody = EmployeeCreate
@@ -298,6 +311,9 @@ type PatchVacationJSONRequestBody = VacationPatch
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// User login
+	// (POST /auth/login)
+	AuthLogin(w http.ResponseWriter, r *http.Request)
 	// Get all employees
 	// (GET /employee)
 	GetEmployees(w http.ResponseWriter, r *http.Request, params GetEmployeesParams)
@@ -363,6 +379,12 @@ type ServerInterface interface {
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
 
 type Unimplemented struct{}
+
+// User login
+// (POST /auth/login)
+func (_ Unimplemented) AuthLogin(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
 
 // Get all employees
 // (GET /employee)
@@ -493,10 +515,30 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
+// AuthLogin operation middleware
+func (siw *ServerInterfaceWrapper) AuthLogin(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AuthLogin(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetEmployees operation middleware
 func (siw *ServerInterfaceWrapper) GetEmployees(w http.ResponseWriter, r *http.Request) {
 
 	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetEmployeesParams
@@ -523,6 +565,12 @@ func (siw *ServerInterfaceWrapper) GetEmployees(w http.ResponseWriter, r *http.R
 // CreateEmployee operation middleware
 func (siw *ServerInterfaceWrapper) CreateEmployee(w http.ResponseWriter, r *http.Request) {
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateEmployee(w, r)
 	}))
@@ -547,6 +595,12 @@ func (siw *ServerInterfaceWrapper) DeleteEmployee(w http.ResponseWriter, r *http
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "employeeID", Err: err})
 		return
 	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteEmployee(w, r, employeeID)
@@ -573,6 +627,12 @@ func (siw *ServerInterfaceWrapper) GetEmployee(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetEmployee(w, r, employeeID)
 	}))
@@ -598,6 +658,12 @@ func (siw *ServerInterfaceWrapper) PatchEmployee(w http.ResponseWriter, r *http.
 		return
 	}
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PatchEmployee(w, r, employeeID)
 	}))
@@ -613,6 +679,12 @@ func (siw *ServerInterfaceWrapper) PatchEmployee(w http.ResponseWriter, r *http.
 func (siw *ServerInterfaceWrapper) GetShifts(w http.ResponseWriter, r *http.Request) {
 
 	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetShiftsParams
@@ -639,6 +711,12 @@ func (siw *ServerInterfaceWrapper) GetShifts(w http.ResponseWriter, r *http.Requ
 // CreateShift operation middleware
 func (siw *ServerInterfaceWrapper) CreateShift(w http.ResponseWriter, r *http.Request) {
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateShift(w, r)
 	}))
@@ -653,6 +731,12 @@ func (siw *ServerInterfaceWrapper) CreateShift(w http.ResponseWriter, r *http.Re
 // GetShiftTypes operation middleware
 func (siw *ServerInterfaceWrapper) GetShiftTypes(w http.ResponseWriter, r *http.Request) {
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetShiftTypes(w, r)
 	}))
@@ -666,6 +750,12 @@ func (siw *ServerInterfaceWrapper) GetShiftTypes(w http.ResponseWriter, r *http.
 
 // CreateShiftType operation middleware
 func (siw *ServerInterfaceWrapper) CreateShiftType(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateShiftType(w, r)
@@ -692,6 +782,12 @@ func (siw *ServerInterfaceWrapper) DeleteShiftType(w http.ResponseWriter, r *htt
 		return
 	}
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteShiftType(w, r, shiftTypeID)
 	}))
@@ -716,6 +812,12 @@ func (siw *ServerInterfaceWrapper) GetShiftType(w http.ResponseWriter, r *http.R
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "shiftTypeID", Err: err})
 		return
 	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetShiftType(w, r, shiftTypeID)
@@ -742,6 +844,12 @@ func (siw *ServerInterfaceWrapper) PatchShiftType(w http.ResponseWriter, r *http
 		return
 	}
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PatchShiftType(w, r, shiftTypeID)
 	}))
@@ -766,6 +874,12 @@ func (siw *ServerInterfaceWrapper) DeleteShift(w http.ResponseWriter, r *http.Re
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "shiftID", Err: err})
 		return
 	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteShift(w, r, shiftID)
@@ -792,6 +906,12 @@ func (siw *ServerInterfaceWrapper) GetShift(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetShift(w, r, shiftID)
 	}))
@@ -817,6 +937,12 @@ func (siw *ServerInterfaceWrapper) PatchShift(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PatchShift(w, r, shiftID)
 	}))
@@ -832,6 +958,12 @@ func (siw *ServerInterfaceWrapper) PatchShift(w http.ResponseWriter, r *http.Req
 func (siw *ServerInterfaceWrapper) GetVacations(w http.ResponseWriter, r *http.Request) {
 
 	var err error
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetVacationsParams
@@ -858,6 +990,12 @@ func (siw *ServerInterfaceWrapper) GetVacations(w http.ResponseWriter, r *http.R
 // CreateVacation operation middleware
 func (siw *ServerInterfaceWrapper) CreateVacation(w http.ResponseWriter, r *http.Request) {
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateVacation(w, r)
 	}))
@@ -882,6 +1020,12 @@ func (siw *ServerInterfaceWrapper) DeleteVacation(w http.ResponseWriter, r *http
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "vacationID", Err: err})
 		return
 	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteVacation(w, r, vacationID)
@@ -908,6 +1052,12 @@ func (siw *ServerInterfaceWrapper) GetVacation(w http.ResponseWriter, r *http.Re
 		return
 	}
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetVacation(w, r, vacationID)
 	}))
@@ -932,6 +1082,12 @@ func (siw *ServerInterfaceWrapper) PatchVacation(w http.ResponseWriter, r *http.
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "vacationID", Err: err})
 		return
 	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PatchVacation(w, r, vacationID)
@@ -1058,6 +1214,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/auth/login", wrapper.AuthLogin)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/employee", wrapper.GetEmployees)
 	})
 	r.Group(func(r chi.Router) {
@@ -1130,6 +1289,34 @@ type ForbiddenJSONResponse Error
 type NotFoundJSONResponse Error
 
 type UnauthorizedJSONResponse Error
+
+type AuthLoginRequestObject struct {
+	Body *AuthLoginJSONRequestBody
+}
+
+type AuthLoginResponseObject interface {
+	VisitAuthLoginResponse(w http.ResponseWriter) error
+}
+
+type AuthLogin200JSONResponse struct {
+	Token *string `json:"token,omitempty"`
+}
+
+func (response AuthLogin200JSONResponse) VisitAuthLoginResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AuthLogin401JSONResponse struct{ UnauthorizedJSONResponse }
+
+func (response AuthLogin401JSONResponse) VisitAuthLoginResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+
+	return json.NewEncoder(w).Encode(response)
+}
 
 type GetEmployeesRequestObject struct {
 	Params GetEmployeesParams
@@ -2057,6 +2244,9 @@ func (response PatchVacation409JSONResponse) VisitPatchVacationResponse(w http.R
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// User login
+	// (POST /auth/login)
+	AuthLogin(ctx context.Context, request AuthLoginRequestObject) (AuthLoginResponseObject, error)
 	// Get all employees
 	// (GET /employee)
 	GetEmployees(ctx context.Context, request GetEmployeesRequestObject) (GetEmployeesResponseObject, error)
@@ -2146,6 +2336,37 @@ type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
 	options     StrictHTTPServerOptions
+}
+
+// AuthLogin operation middleware
+func (sh *strictHandler) AuthLogin(w http.ResponseWriter, r *http.Request) {
+	var request AuthLoginRequestObject
+
+	var body AuthLoginJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AuthLogin(ctx, request.(AuthLoginRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AuthLogin")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AuthLoginResponseObject); ok {
+		if err := validResponse.VisitAuthLoginResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
 }
 
 // GetEmployees operation middleware
@@ -2717,40 +2938,43 @@ func (sh *strictHandler) PatchVacation(w http.ResponseWriter, r *http.Request, v
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"AA==",
+	"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",
+	"MtltzObN6n71vwAAAP//fq+osrRIAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

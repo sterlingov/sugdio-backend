@@ -22,11 +22,12 @@ func main() {
 
 	repo := repository.NewPostgresRepo(db)
 
+	authService := service.NewAuthService(repo)
 	empService := service.NewEmployeeService(repo, repo, repo, repo, repo, repo)
 	shiftService := service.NewShiftService(repo, repo)
 	vacService := service.NewVacationService(repo, repo)
 
-	h := handlers.NewHandler(empService, shiftService, vacService)
+	h := handlers.NewHandler(authService, empService, shiftService, vacService)
 
 	strictHandler := api.NewStrictHandler(h, nil)
 
