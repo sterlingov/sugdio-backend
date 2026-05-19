@@ -61,8 +61,8 @@ func (r *PostgresRepository) CreateShift(ctx context.Context, shift *domain.Shif
 		SELECT $1, $2, $3, $4
 		WHERE NOT EXISTS (
     		SELECT 1 FROM vacations
-    		WHERE employee_id = $1
-      			AND start_date <= $2 AND end_date >= $2
+    		WHERE employee_id = $3
+      			AND start_date <= $1 AND end_date >= $1
 		) 
 		RETURNING id`,
 		shift.Date,
